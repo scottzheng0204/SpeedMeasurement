@@ -1,0 +1,146 @@
+C51 COMPILER V9.00   MAIN                                                                  03/23/2021 10:59:53 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include "delay.h"
+   2          #include "GPIO.h"
+   3          #include "timer.h"
+   4          #include "USART.h"
+   5          
+   6          #include <string.h>
+   7          
+   8          /*************  本地变量声明    **************/
+   9          u16 num = 0;
+  10          u16 cun = 0;
+  11          
+  12          /************************ IO口配置 ****************************/
+  13          void    GPIO_config(void)
+  14          {
+  15   1              GPIO_InitTypeDef        GPIO_InitStructure;                             //结构定义
+  16   1              GPIO_InitStructure.Pin  = GPIO_Pin_2;   //指定要初始化的IO, GPIO_Pin_0 ~ GPIO_Pin_7, 或操作
+  17   1              GPIO_InitStructure.Mode = GPIO_PullUp;                          //指定IO的输入或输出方式,GPIO_PullUp,GPIO_HighZ,GPIO_OUT_OD,GPI
+             -O_OUT_PP
+  18   1              GPIO_Inilize(GPIO_P3,&GPIO_InitStructure);                      //初始化
+  19   1      
+  20   1              GPIO_InitStructure.Pin  = GPIO_Pin_All;         //指定要初始化的IO, GPIO_Pin_0 ~ GPIO_Pin_7, 或操作
+  21   1              GPIO_InitStructure.Mode = GPIO_OUT_PP;          //指定IO的输入或输出方式,GPIO_PullUp,GPIO_HighZ,GPIO_OUT_OD,GPIO_
+             -OUT_PP
+  22   1              GPIO_Inilize(GPIO_P1,&GPIO_InitStructure);      //初始化
+  23   1      }
+  24          
+  25          /************************ 定时器配置 ****************************/
+  26          void    Timer_config(void)
+  27          {
+  28   1              TIM_InitTypeDef         TIM_InitStructure;                                      //结构定义
+  29   1              TIM_InitStructure.TIM_Mode      = TIM_16BitAutoReload;  //指定工作模式,   TIM_16BitAutoReload,TIM_16Bit,TI
+             -M_8BitAutoReload,TIM_16BitAutoReloadNoMask
+  30   1              TIM_InitStructure.TIM_Polity    = PolityLow;                    //指定中断优先级, PolityHigh,PolityLow
+  31   1              TIM_InitStructure.TIM_Interrupt = ENABLE;                               //中断是否允许,   ENABLE或DISABLE
+  32   1              TIM_InitStructure.TIM_ClkSource = TIM_CLOCK_1T;                 //指定时钟源,     TIM_CLOCK_1T,TIM_CLOCK_12T,TIM_CLOCK_
+             -Ext
+  33   1              TIM_InitStructure.TIM_ClkOut    = DISABLE;                              //是否输出高速脉冲, ENABLE或DISABLE
+  34   1              TIM_InitStructure.TIM_Value     = 65536UL - (MAIN_Fosc / (50*12));//65536UL - (MAIN_Fosc / 100000UL);           //
+             -初值,
+  35   1              TIM_InitStructure.TIM_Run       = ENABLE;                               //是否初始化后启动定时器, ENABLE或DISABLE
+  36   1              Timer_Inilize(Timer0,&TIM_InitStructure);                               //初始化Timer0    Timer0,Timer2
+  37   1      }
+  38          
+  39          
+  40          /*************  串口1初始化函数 *****************/
+  41          void    UART_config(void)
+  42          {
+  43   1              COMx_InitDefine         COMx_InitStructure;                                     //结构定义
+  44   1              COMx_InitStructure.UART_Mode      = UART_8bit_BRTx;             //模式,       UART_ShiftRight,UART_8bit_BRTx,UART_9b
+             -it,UART_9bit_BRTx
+  45   1              COMx_InitStructure.UART_BRT_Use   = BRT_Timer2;                 //使用波特率,   BRT_Timer1, BRT_Timer2 (注意: 串口2固定
+             -使用BRT_Timer2)
+  46   1              COMx_InitStructure.UART_BaudRate  = 9600ul;                     //波特率, 一般 110 ~ 115200
+  47   1              COMx_InitStructure.UART_RxEnable  = ENABLE;                             //接收允许,   ENABLE或DISABLE
+C51 COMPILER V9.00   MAIN                                                                  03/23/2021 10:59:53 PAGE 2   
+
+  48   1              COMx_InitStructure.BaudRateDouble = DISABLE;                    //波特率加倍, ENABLE或DISABLE
+  49   1              COMx_InitStructure.UART_Interrupt = ENABLE;                             //中断允许,   ENABLE或DISABLE
+  50   1              COMx_InitStructure.UART_Polity    = PolityLow;                  //中断优先级, PolityLow,PolityHigh
+  51   1              COMx_InitStructure.UART_P_SW      = UART1_SW_P30_P31;   //切换端口,   UART1_SW_P30_P31,UART1_SW_P36_P37,UAR
+             -T1_SW_P16_P17(必须使用内部时钟)
+  52   1              COMx_InitStructure.UART_RXD_TXD_Short = DISABLE;                //内部短路RXD与TXD, 做中继, ENABLE,DISABLE
+  53   1              USART_Configuration(USART1, &COMx_InitStructure);               //初始化串口1 USART1,USART2
+  54   1      
+  55   1              PrintString1("STC15F2K60S2 UART1 Test Prgramme!\r\n");  //SUART1发送一个字符串
+  56   1      }
+  57          
+  58          void USART1_send(u8 *puts, u8 len){
+  59   1              u8 *p = puts;
+  60   1              u8 i = 0;
+  61   1              for(i = 0; i < len; i++){
+  62   2                      TX1_write2buff(*p++);
+  63   2              }
+  64   1      }
+  65          
+  66          /******************** 主函数**************************/
+  67          void main(void)
+  68          {
+  69   1                      
+  70   1              UART_DATA_t data_d;
+  71   1              memset(&data_d,0,sizeof(data_d));
+  72   1              data_d.OPNum = 1;
+  73   1              data_d.devNum = 1;
+  74   1              data_d.ldata = 0x01;
+  75   1              
+  76   1              GPIO_config();
+  77   1              UART_config();
+  78   1              delay_ms(2000);
+  79   1              Timer_config();
+  80   1              
+  81   1      //      EXTI_config();
+  82   1              EA = 1;
+  83   1              P11 = 0;
+  84   1              P32 = 0;
+  85   1              
+  86   1              while (1)
+  87   1              {
+  88   2                      //光电开关扫描识别计数
+  89   2      //              if(P32 == 1){
+  90   2      //                      delay_ms(10);//按键消抖
+  91   2      //                      if(P32 == 1)
+  92   2      //                      {
+  93   2      //                              num++;
+  94   2      ////                            putchar(num);
+  95   2      ////                            P11 = ~P11;
+  96   2      //                      }while(P32 == 1);
+  97   2      //              }
+  98   2                      if(cun == 1000){
+  99   3                              cun = 0;
+ 100   3                              
+ 101   3      //                      putchar(num);
+ 102   3                              USART1_send((u8 *)&data_d, sizeof(data_d));
+ 103   3      //                      P11 = ~P11;
+ 104   3      //                      PrintString1("Interrupt!\r\n");
+ 105   3                      }
+ 106   2                      //通信
+ 107   2              }
+ 108   1      }
+C51 COMPILER V9.00   MAIN                                                                  03/23/2021 10:59:53 PAGE 3   
+
+ 109          
+ 110          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    236    ----
+   CONSTANT SIZE    =     36    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4      36
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
